@@ -1,28 +1,66 @@
 import JWT from "jsonwebtoken"
-import { fetchUploadPolicy, generateAuth } from ".."
+import {
+  parseApiKey,
+  stringifyApiKey,
+  generatePermit,
+  _generatePermit,
+  fetchUploadPolicyWithApiKey,
+  fetchUploadPolicy,
+} from ".."
 
 jest.mock("isomorphic-unfetch", () => require("fetch-mock-jest").sandbox())
 const fetchMock = require("isomorphic-unfetch")
 
 const KEY_ID = "CfTDX9cq282nQV3K"
 const SECRET_KEY = "nJF2aDL4Nf41L3D5Nh8QJtosN0cJvlL0"
+const API_KEY = stringifyApiKey({ keyId: KEY_ID, secretKey: SECRET_KEY })
 
 describe("api-client", () => {
-  describe("generateAuth", () => {
-    it("generate and decode a simple auth", async () => {
-      const auth = generateAuth(
-        { acceptDocumentKeys: "**/*" },
+  describe("parseApiKey", () => {
+    it("should throw if api key is not 3 parts", async () => {
+      expect(() => parseApiKey("rueiruewirueiw")).toThrow(
+        "exactly 3 parts but is 1"
+      )
+    })
+
+    it("should throw if first part is not PRTV", async () => {
+      expect(() => parseApiKey("AKIA_123_456")).toThrow(
+        /expected first part of api key to be PRTV but is "AKIA"/i
+      )
+    })
+
+    it("should return the parts as expected", async () => {
+      const result = parseApiKey("PRTV_alpha_bravo")
+      expect(result).toEqual({
+        keyType: "PRTV",
+        keyId: "alpha",
+        secretKey: "bravo",
+      })
+    })
+  })
+
+  describe("stringifyApiKey", () => {
+    it("should create an apiKey from the parts of an apiKey", async () => {
+      const apiKey = stringifyApiKey({ keyId: "keyid", secretKey: "secretkey" })
+      expect(apiKey).toEqual("PRTV_keyid_secretkey")
+    })
+  })
+
+  describe("_generatePermit", () => {
+    it("generate and decode a simple permit", async () => {
+      const permit = _generatePermit(
+        { spot: "**/*" },
         {
           keyId: KEY_ID,
           secretKey: SECRET_KEY,
           expiresIn: "1h",
         }
       )
-      const complete = JWT.verify(auth, SECRET_KEY, { complete: true })
+      const complete = JWT.verify(permit, SECRET_KEY, { complete: true })
       expect(complete).toEqual({
         header: { alg: "HS256", typ: "JWT", kid: "CfTDX9cq282nQV3K" },
         payload: {
-          acceptDocumentKeys: "**/*",
+          spot: "**/*",
           iat: expect.any(Number),
           exp: expect.any(Number),
         },
@@ -30,10 +68,10 @@ describe("api-client", () => {
       })
     })
 
-    it("should fail to generate an invalid auth in the options", async () => {
+    it("should fail to generate an invalid permit in the options", async () => {
       expect(() =>
-        generateAuth(
-          { acceptDocumentKeys: "**/*" },
+        _generatePermit(
+          { spot: "**/*" },
           {
             keyId: 123 as any, // force an error
             secretKey: SECRET_KEY,
@@ -43,27 +81,46 @@ describe("api-client", () => {
       ).toThrow(`"keyid" must be a string`)
     })
 
-    it("should fail to generate an invalid auth in the claims", async () => {
+    it("should fail to generate an invalid permit in the claims", async () => {
       expect(() =>
-        generateAuth(
-          { acceptDocumentKeys: 123 as any }, // force an error
+        _generatePermit(
+          { spot: 123 as any }, // force an error
           {
             keyId: KEY_ID,
             secretKey: SECRET_KEY,
             expiresIn: "1h",
           }
         )
-      ).toThrow(`Error validating JWT Payload. At path: acceptDocumentKeys`)
+      ).toThrow(`Error validating JWT Payload. At path: spot`)
     })
 
     it("should fail if secretKey is missing", async () => {
       expect(
         () =>
-          generateAuth({ acceptDocumentKeys: "**/*" }, {
+          _generatePermit({ spot: "**/*" }, {
             keyId: KEY_ID,
             expiresIn: "1h",
           } as any) // force an error (missing `secretKey`)
       ).toThrow(`secretOrPrivateKey must have a value`)
+    })
+  })
+
+  describe("generatePermit", () => {
+    it("should generate permissions", async () => {
+      const permit = generatePermit(API_KEY, {
+        spot: "**/*",
+        expiresIn: "1d",
+      })
+      const complete = JWT.verify(permit, SECRET_KEY, { complete: true })
+      expect(complete).toEqual({
+        header: { alg: "HS256", typ: "JWT", kid: "CfTDX9cq282nQV3K" },
+        payload: {
+          spot: "**/*",
+          iat: expect.any(Number),
+          exp: expect.any(Number),
+        },
+        signature: expect.any(String),
+      })
     })
   })
 
@@ -76,18 +133,20 @@ describe("api-client", () => {
         status: 200,
         body: {},
       })
-      const auth = generateAuth(
-        { acceptDocumentKeys: "**/*" },
+      const permit = _generatePermit(
+        { spot: "**/*" },
         {
           keyId: KEY_ID,
           secretKey: SECRET_KEY,
           expiresIn: 60 * 60,
         }
       )
-      const uploadPolicy = await fetchUploadPolicy(auth, {
-        documentKey: "articles/123",
+      await fetchUploadPolicy(permit, {
+        spot: "articles/123",
         file: {
           type: "generic",
+          filename: "1kbfile.txt",
+          contentType: "text/plain",
           bytes: 1024,
         },
       })
@@ -98,13 +157,18 @@ describe("api-client", () => {
         mode: "cors",
         cache: "no-cache",
         headers: { "Content-Type": "application/json" },
-        body: expect.any(String), //'{"auth":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkNmVERYOWNxMjgyblFWM0sifQ.eyJhY2NlcHREb2N1bWVudEtleXMiOiIqKi8qIiwiaWF0IjoxNjUxNTI1NzE5LCJleHAiOjE2NTE1MjkzMTl9.HVFNOnGQI7JETTqkQ_zRUK41hIJD78R8USTwFzyAvfI","documentKey":"articles/123","file":{"type":"generic","bytes":1024}}',
+        body: expect.any(String), //'{"permit":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkNmVERYOWNxMjgyblFWM0sifQ.eyJhY2NlcHREb2N1bWVudEtleXMiOiIqKi8qIiwiaWF0IjoxNjUxNTI1NzE5LCJleHAiOjE2NTE1MjkzMTl9.HVFNOnGQI7JETTqkQ_zRUK41hIJD78R8USTwFzyAvfI","documentKey":"articles/123","file":{"type":"generic","bytes":1024}}',
       })
       const json = JSON.parse(request.body)
       expect(json).toEqual({
-        auth: expect.any(String),
-        documentKey: "articles/123",
-        file: { type: "generic", bytes: 1024 },
+        permit: expect.any(String),
+        spot: "articles/123",
+        file: {
+          type: "generic",
+          filename: "1kbfile.txt",
+          contentType: "text/plain",
+          bytes: 1024,
+        },
       })
     })
   })
