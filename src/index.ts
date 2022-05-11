@@ -2,7 +2,6 @@ import { signJWT } from "@portive/jwt-utils"
 import {
   PermitHeaderStruct,
   PermitPayloadStruct,
-  API_UPLOAD_URL,
   PermitPrivateClaims,
   UploadFileResponse,
   UploadProps,
@@ -131,11 +130,12 @@ export function generatePermit(
  * about the file and the `spot` it will be uploaded to.
  */
 export async function fetchUploadPolicy(
+  url: string,
   permit: string,
   uploadProps: UploadProps
 ): Promise<UploadFileResponse> {
   const data = { permit, ...uploadProps }
-  const response = await fetch(API_UPLOAD_URL, {
+  const response = await fetch(url, {
     method: "POST",
     mode: "cors",
     cache: "no-cache",
@@ -154,10 +154,11 @@ export async function fetchUploadPolicy(
  * options.
  */
 export async function fetchUploadPolicyWithApiKey(
+  url: string,
   apiKey: string,
   uploadProps: UploadProps,
   permitOptions: PermitOptions
 ) {
-  const auth = generatePermit(apiKey, permitOptions)
-  return await fetchUploadPolicy(auth, uploadProps)
+  const permit = generatePermit(apiKey, permitOptions)
+  return await fetchUploadPolicy(url, permit, uploadProps)
 }

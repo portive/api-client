@@ -7,6 +7,7 @@ import {
   fetchUploadPolicyWithApiKey,
   fetchUploadPolicy,
 } from ".."
+import { API_UPLOAD_URL } from "@portive/api-types"
 
 jest.mock("isomorphic-unfetch", () => require("fetch-mock-jest").sandbox())
 const fetchMock = require("isomorphic-unfetch")
@@ -141,7 +142,7 @@ describe("api-client", () => {
           expiresIn: 60 * 60,
         }
       )
-      await fetchUploadPolicy(permit, {
+      await fetchUploadPolicy(API_UPLOAD_URL, permit, {
         spot: "articles/123",
         file: {
           type: "generic",
