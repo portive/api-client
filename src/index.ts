@@ -128,7 +128,7 @@ export async function fetchUploadPolicy(
   authToken: string,
   uploadProps: UploadProps
 ): Promise<UploadFileResponse> {
-  const data = { permit: authToken, ...uploadProps }
+  const data = { authToken, ...uploadProps }
   const response = await fetch(url, {
     method: "POST",
     mode: "cors",
