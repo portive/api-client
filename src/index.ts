@@ -1,8 +1,8 @@
 import { signJWT } from "@portive/jwt-utils"
 import {
-  PermitHeaderStruct,
-  PermitPayloadStruct,
-  PermitPrivateClaims,
+  AuthHeaderStruct,
+  AuthPayloadStruct,
+  AuthPrivateClaims,
   UploadFileResponse,
   UploadProps,
 } from "@portive/api-types"
@@ -74,14 +74,14 @@ export function stringifyApiKey({
 type ExpiresIn = JWT.SignOptions["expiresIn"]
 
 /**
- * A lower level version of `generatePermit` which `generatePermit` uses.
+ * A lower level version of `generateAuth` which `generateAuth` uses.
  * Takes the `claims`, `keyId`, `secretKey` and `expiresIn` as separate
  * arguments to make thigns a little more readable.
  *
- * Probably okay to merge this into `generatePermit` later.
+ * Probably okay to merge this into `generateAuth` later.
  */
-export function _generatePermit(
-  claims: PermitPrivateClaims,
+export function _generateAuth(
+  claims: AuthPrivateClaims,
   {
     keyId,
     secretKey,
@@ -93,48 +93,42 @@ export function _generatePermit(
   }
 ): string {
   const x = claims
-  const jwt = signJWT(
-    claims,
-    PermitPayloadStruct,
-    PermitHeaderStruct,
-    secretKey,
-    {
-      keyid: keyId,
-      expiresIn,
-    }
-  )
+  const jwt = signJWT(claims, AuthPayloadStruct, AuthHeaderStruct, secretKey, {
+    keyid: keyId,
+    expiresIn,
+  })
   return jwt
 }
 
 /**
  * Permissions includes both the private claims and the `expiresIn` value
  * for the JWT token. Think of it as the combination of Options for a
- * permit token.
+ * auth token.
  */
-type PermitOptions = PermitPrivateClaims & { expiresIn: ExpiresIn }
+type AuthOptions = AuthPrivateClaims & { expiresIn: ExpiresIn }
 
 /**
  * Takes an apiKey (which includes the `keyId` and `secretKey`) and a set of
  * PermitOptions and then generates a permit from it.
  */
-export function generatePermit(
+export function generateAuth(
   apiKey: string,
-  { expiresIn, ...claims }: PermitOptions // PermitPrivateClaims & { expiresIn: ExpiresIn }
+  { expiresIn, ...claims }: AuthOptions // PermitPrivateClaims & { expiresIn: ExpiresIn }
 ) {
   const { keyId, secretKey } = parseApiKey(apiKey)
-  return _generatePermit(claims, { keyId, secretKey, expiresIn })
+  return _generateAuth(claims, { keyId, secretKey, expiresIn })
 }
 
 /**
- * Takes a `permit` and a set of uploadProps which consists of information
- * about the file and the `spot` it will be uploaded to.
+ * Takes an `authToken` and a set of uploadProps which consists of information
+ * about the file and the `recordKey` it will be uploaded to.
  */
 export async function fetchUploadPolicy(
   url: string,
-  permit: string,
+  authToken: string,
   uploadProps: UploadProps
 ): Promise<UploadFileResponse> {
-  const data = { permit, ...uploadProps }
+  const data = { permit: authToken, ...uploadProps }
   const response = await fetch(url, {
     method: "POST",
     mode: "cors",
@@ -147,18 +141,18 @@ export async function fetchUploadPolicy(
 
 /**
  * Allows fetching the uploadPolicy directly on the server using the api key,
- * upload props and a set of permitOptions.
+ * upload props and a set of authOptions.
  *
  * At the time of writing and testing, we may not recommend this. Giving the
- * permit to the browser is probably about as fast and gives the necessary
+ * authToken to the browser is probably about as fast and gives the necessary
  * options.
  */
 export async function fetchUploadPolicyWithApiKey(
   url: string,
   apiKey: string,
   uploadProps: UploadProps,
-  permitOptions: PermitOptions
+  permitOptions: AuthOptions
 ) {
-  const permit = generatePermit(apiKey, permitOptions)
+  const permit = generateAuth(apiKey, permitOptions)
   return await fetchUploadPolicy(url, permit, uploadProps)
 }
