@@ -1,6 +1,6 @@
 {
   "name": "@portive/api-client",
-  "version": "3.0.3",
+  "version": "4.0.0",
   "license": "MIT",
   "main": ".dist/src/index.js",
   "types": ".dist/src/index.d.ts",
