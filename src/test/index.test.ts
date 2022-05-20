@@ -2,8 +2,8 @@ import JWT from "jsonwebtoken"
 import {
   parseApiKey,
   stringifyApiKey,
-  generateAuth,
-  _generateAuth,
+  generateAuthToken,
+  _generateAuthToken,
   fetchUploadPolicyWithApiKey,
   fetchUploadPolicy,
 } from ".."
@@ -49,8 +49,8 @@ describe("api-client", () => {
 
   describe("_generatePermit", () => {
     it("generate and decode a simple permit", async () => {
-      const permit = _generateAuth(
-        { recordKey: "**/*" },
+      const permit = _generateAuthToken(
+        { path: "**/*" },
         {
           keyId: KEY_ID,
           secretKey: SECRET_KEY,
@@ -61,7 +61,7 @@ describe("api-client", () => {
       expect(complete).toEqual({
         header: { alg: "HS256", typ: "JWT", kid: "CfTDX9cq282nQV3K" },
         payload: {
-          recordKey: "**/*",
+          path: "**/*",
           iat: expect.any(Number),
           exp: expect.any(Number),
         },
@@ -71,8 +71,8 @@ describe("api-client", () => {
 
     it("should fail to generate an invalid permit in the options", async () => {
       expect(() =>
-        _generateAuth(
-          { recordKey: "**/*" },
+        _generateAuthToken(
+          { path: "**/*" },
           {
             keyId: 123 as any, // force an error
             secretKey: SECRET_KEY,
@@ -84,21 +84,21 @@ describe("api-client", () => {
 
     it("should fail to generate an invalid permit in the claims", async () => {
       expect(() =>
-        _generateAuth(
-          { recordKey: 123 as any }, // force an error
+        _generateAuthToken(
+          { path: 123 as any }, // force an error
           {
             keyId: KEY_ID,
             secretKey: SECRET_KEY,
             expiresIn: "1h",
           }
         )
-      ).toThrow(`Error validating JWT Payload. At path: recordKey`)
+      ).toThrow(`Error validating JWT Payload. At path: path`)
     })
 
     it("should fail if secretKey is missing", async () => {
       expect(
         () =>
-          _generateAuth({ recordKey: "**/*" }, {
+          _generateAuthToken({ path: "**/*" }, {
             keyId: KEY_ID,
             expiresIn: "1h",
           } as any) // force an error (missing `secretKey`)
@@ -108,15 +108,15 @@ describe("api-client", () => {
 
   describe("generatePermit", () => {
     it("should generate permissions", async () => {
-      const permit = generateAuth(API_KEY, {
-        recordKey: "**/*",
+      const permit = generateAuthToken(API_KEY, {
+        path: "**/*",
         expiresIn: "1d",
       })
       const complete = JWT.verify(permit, SECRET_KEY, { complete: true })
       expect(complete).toEqual({
         header: { alg: "HS256", typ: "JWT", kid: "CfTDX9cq282nQV3K" },
         payload: {
-          recordKey: "**/*",
+          path: "**/*",
           iat: expect.any(Number),
           exp: expect.any(Number),
         },
@@ -134,16 +134,16 @@ describe("api-client", () => {
         status: 200,
         body: {},
       })
-      const permit = _generateAuth(
-        { recordKey: "**/*" },
+      const authToken = _generateAuthToken(
+        { path: "**/*" },
         {
           keyId: KEY_ID,
           secretKey: SECRET_KEY,
           expiresIn: 60 * 60,
         }
       )
-      await fetchUploadPolicy(API_UPLOAD_URL, permit, {
-        recordKey: "articles/123",
+      await fetchUploadPolicy(API_UPLOAD_URL, authToken, {
+        path: "articles/123",
         file: {
           type: "generic",
           filename: "1kbfile.txt",
@@ -162,8 +162,8 @@ describe("api-client", () => {
       })
       const json = JSON.parse(request.body)
       expect(json).toEqual({
-        permit: expect.any(String),
-        recordKey: "articles/123",
+        authToken: expect.any(String),
+        path: "articles/123",
         file: {
           type: "generic",
           filename: "1kbfile.txt",

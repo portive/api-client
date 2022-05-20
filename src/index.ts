@@ -80,7 +80,7 @@ type ExpiresIn = JWT.SignOptions["expiresIn"]
  *
  * Probably okay to merge this into `generateAuth` later.
  */
-export function _generateAuth(
+export function _generateAuthToken(
   claims: AuthPrivateClaims,
   {
     keyId,
@@ -111,12 +111,12 @@ type AuthOptions = AuthPrivateClaims & { expiresIn: ExpiresIn }
  * Takes an apiKey (which includes the `keyId` and `secretKey`) and a set of
  * PermitOptions and then generates a permit from it.
  */
-export function generateAuth(
+export function generateAuthToken(
   apiKey: string,
   { expiresIn, ...claims }: AuthOptions // PermitPrivateClaims & { expiresIn: ExpiresIn }
 ) {
   const { keyId, secretKey } = parseApiKey(apiKey)
-  return _generateAuth(claims, { keyId, secretKey, expiresIn })
+  return _generateAuthToken(claims, { keyId, secretKey, expiresIn })
 }
 
 /**
@@ -126,7 +126,7 @@ export function generateAuth(
 export async function fetchUploadPolicy(
   url: string,
   authToken: string,
-  uploadProps: UploadProps
+  uploadProps: Omit<UploadProps, "authToken">
 ): Promise<UploadFileResponse> {
   const data = { authToken, ...uploadProps }
   const response = await fetch(url, {
@@ -153,6 +153,6 @@ export async function fetchUploadPolicyWithApiKey(
   uploadProps: UploadProps,
   permitOptions: AuthOptions
 ) {
-  const permit = generateAuth(apiKey, permitOptions)
+  const permit = generateAuthToken(apiKey, permitOptions)
   return await fetchUploadPolicy(url, permit, uploadProps)
 }
