@@ -18,6 +18,7 @@ import JWT from "jsonwebtoken"
  */
 import fetch from "isomorphic-unfetch"
 
+// eslint-disable-next-line no-secrets/no-secrets
 /**
  * Takes an `apiKey` comprising of the parts separates by underscores. The
  * first part being a preamble checking that it starts with `PRTV`, the
@@ -55,6 +56,7 @@ export function parseApiKey(apiKey: string) {
   }
 }
 
+// eslint-disable-next-line no-secrets/no-secrets
 /**
  * Takes the API key id and the API secret key and merges them into a single
  * API key which includes the `PRTV` preamble.
