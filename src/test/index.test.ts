@@ -1,3 +1,5 @@
+/* Disable checking for `any` to allow for bad types to force errors in tests */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* Disable checking for `require` as we need it to make mocking of fetch work */
 /* eslint-disable @typescript-eslint/no-var-requires */
 import JWT from "jsonwebtoken"
@@ -6,7 +8,6 @@ import {
   stringifyApiKey,
   generateAuthToken,
   _generateAuthToken,
-  fetchUploadPolicyWithApiKey,
   fetchUploadPolicy,
 } from ".."
 import { API_UPLOAD_URL } from "@portive/api-types"
