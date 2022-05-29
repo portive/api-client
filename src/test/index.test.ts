@@ -1,3 +1,5 @@
+/* Disable checking for `require` as we need it to make mocking of fetch work */
+/* eslint-disable @typescript-eslint/no-var-requires */
 import JWT from "jsonwebtoken"
 import {
   parseApiKey,
@@ -144,7 +146,7 @@ describe("api-client", () => {
       )
       await fetchUploadPolicy(API_UPLOAD_URL, authToken, {
         path: "articles/123",
-        file: {
+        clientFileInfo: {
           type: "generic",
           filename: "1kbfile.txt",
           contentType: "text/plain",
@@ -158,13 +160,13 @@ describe("api-client", () => {
         mode: "cors",
         cache: "no-cache",
         headers: { "Content-Type": "application/json" },
-        body: expect.any(String), //'{"permit":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkNmVERYOWNxMjgyblFWM0sifQ.eyJhY2NlcHREb2N1bWVudEtleXMiOiIqKi8qIiwiaWF0IjoxNjUxNTI1NzE5LCJleHAiOjE2NTE1MjkzMTl9.HVFNOnGQI7JETTqkQ_zRUK41hIJD78R8USTwFzyAvfI","documentKey":"articles/123","file":{"type":"generic","bytes":1024}}',
+        body: expect.any(String),
       })
       const json = JSON.parse(request.body)
       expect(json).toEqual({
         authToken: expect.any(String),
         path: "articles/123",
-        file: {
+        clientFileInfo: {
           type: "generic",
           filename: "1kbfile.txt",
           contentType: "text/plain",

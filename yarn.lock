@@ -644,10 +644,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@portive/api-types@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@portive/api-types/-/api-types-4.0.0.tgz#c66c05adaa8bd51e7168a9a89d295a5a39344807"
-  integrity sha512-AXoPO5pe1U1HFzeOBfx6VvhWHqKnXArScoktzklP0HxmqSonAgmrylHF2JKNoP+Uen4FHld0saIY6flKsyj+1w==
+"@portive/api-types@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@portive/api-types/-/api-types-5.0.1.tgz#8bede90b5e3880a6689604d280d10d44640451e8"
+  integrity sha512-MPW8jPm0V6IIoFhqUko1M4aDnO+DhvgsrP//p5UglYHBUt9t2iXcpGz8L8ZgkiYGcIqQEeUdanyDEbRVfV7Umw==
   dependencies:
     "@thesunny/assert-type" "^0.1.7"
     superstruct "^0.15.4"
@@ -3207,6 +3207,11 @@ prelude-ls@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.1.2.tgz#21932a549f5e52ffd9a827f570e04be62a97da54"
   integrity sha1-IZMqVJ9eUv/ZqCf1cOBL5iqX2lQ=
+
+prettier@^2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.6.2.tgz#e26d71a18a74c3d0f0597f55f01fb6c06c206032"
+  integrity sha512-PkUpF+qoXTqhOeWL9fu7As8LXsIUZ1WYaJiY/a7McAQzxjk82OF0tibkFXVCDImZtWxbvojFjerkiLb0/q8mew==
 
 pretty-format@^27.0.0, pretty-format@^27.5.1:
   version "27.5.1"

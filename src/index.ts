@@ -94,7 +94,6 @@ export function _generateAuthToken(
     expiresIn: ExpiresIn
   }
 ): string {
-  const x = claims
   const jwt = signJWT(claims, AuthPayloadStruct, AuthHeaderStruct, secretKey, {
     keyid: keyId,
     expiresIn,
