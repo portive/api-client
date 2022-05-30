@@ -8,7 +8,7 @@
     ".dist/**/*"
   ],
   "dependencies": {
-    "@portive/api-types": "^5.0.1",
+    "@portive/api-types": "^6.0.0",
     "@portive/jwt-utils": "^1.0.2",
     "isomorphic-unfetch": "^3.1.0",
     "jsonwebtoken": "^8.5.1",

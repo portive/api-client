@@ -644,10 +644,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@portive/api-types@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@portive/api-types/-/api-types-5.0.1.tgz#8bede90b5e3880a6689604d280d10d44640451e8"
-  integrity sha512-MPW8jPm0V6IIoFhqUko1M4aDnO+DhvgsrP//p5UglYHBUt9t2iXcpGz8L8ZgkiYGcIqQEeUdanyDEbRVfV7Umw==
+"@portive/api-types@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@portive/api-types/-/api-types-6.0.0.tgz#02a4d189ed848417a4e11e8ba540882c999beecd"
+  integrity sha512-kuM4UNiZgam5m37OUZt2lSdmsp2a5Ms5s8TVNTcyYmSv5IX6v+jpXgMLrOkAVFy+GlAUCaCqCJW28id/xOGYdg==
   dependencies:
     "@thesunny/assert-type" "^0.1.7"
     superstruct "^0.15.4"
